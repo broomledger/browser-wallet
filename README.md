@@ -1,2 +1,3 @@
-# browser-wallet
-browser wallet for broom, nothing saved to the cloud, all based on config and local storage
+# Broom Browser Wallet
+
+fully offline browser wallet
