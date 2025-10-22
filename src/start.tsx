@@ -1,0 +1,116 @@
+import { useEffect, useRef, useState } from "react";
+import type { StartProps } from "./types";
+import { exportPrivateKey, generateAddress } from "./utils";
+
+export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
+	const [dragOver, setDragOver] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+	useEffect(() => {
+		console.log("Welcome screen loaded");
+	}, []);
+
+	const handleFileSelect = () => {
+		fileInputRef.current?.click();
+	};
+
+	const handleFile = async (file: File) => {
+		try {
+			const text = await file.text();
+			const data = JSON.parse(text);
+			setPrivateKey(data.private || "");
+			setPublicKey(data.public || "");
+			if (!data.public) {
+				console.log("invalid file");
+				throw new Error("invalid file");
+			}
+		} catch {
+			alert("invalid file");
+		}
+	};
+
+	const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+		e.preventDefault();
+		setDragOver(false);
+		const file = e.dataTransfer.files?.[0];
+		console.log(file);
+		if (file) handleFile(file);
+	};
+
+	const generateKeys = async () => {
+		console.log("generating keys");
+		const keyPair = await window.crypto.subtle.generateKey(
+			{
+				name: "ECDSA",
+				namedCurve: "P-256",
+			},
+			true, // extractable
+			["sign", "verify"]
+		);
+
+		console.log(keyPair.privateKey);
+
+		const jsonOutput = {
+			public: await generateAddress(keyPair.publicKey),
+			private: await exportPrivateKey(keyPair.privateKey),
+		};
+		const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], {
+			type: "application/json",
+		});
+
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "walletconfig.broom";
+		a.click();
+		URL.revokeObjectURL(url);
+
+		setPublicKey(jsonOutput.public);
+		setPrivateKey(jsonOutput.private);
+	};
+
+	return (
+		<div className="min-h-screen flex flex-col items-center justify-center text-center p-8 space-y-10 bg-base-100">
+			<div className="space-y-2">
+				<h1 className="text-5xl font-bold text-primary">Broom Wallet</h1>
+				<p className="text-base text-base-content/70 max-w-md">
+					Manage your wallet securely. All data is stored in local storage, we keep none of your data.
+				</p>
+			</div>
+
+			<a href="https://broomledger.com" target="_blank" className="btn btn-small btn-accent text-md">
+				Node Homepage
+			</a>
+
+			<div
+				className={`w-96 h-36 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-colors duration-150 cursor-pointer ${
+					dragOver ? "border-primary bg-base-200" : "border-base-300 bg-base-200/50"
+				}`}
+				onDragOver={(e) => {
+					e.preventDefault();
+					setDragOver(true);
+				}}
+				onDragLeave={() => setDragOver(false)}
+				onDrop={handleDrop}
+				onClick={handleFileSelect}
+			>
+				<p className="text-sm text-base-content/70">Drag & drop wallet config file here</p>
+				<span className="text-xs text-base-content/50 mt-1">or click to browse</span>
+			</div>
+
+			<input
+				type="file"
+				ref={fileInputRef}
+				className="hidden"
+				onChange={(e) => {
+					const file = e.target.files?.[0];
+					if (file) handleFile(file);
+				}}
+			/>
+
+			<button className="btn btn-primary w-96 mt-2 text-lg rounded-xl shadow" onClick={generateKeys}>
+				Generate New Wallet
+			</button>
+		</div>
+	);
+};
