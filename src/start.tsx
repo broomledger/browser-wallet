@@ -78,10 +78,6 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 				</p>
 			</div>
 
-			<a href="https://broomledger.com" target="_blank" className="btn btn-small btn-accent text-md">
-				Node Homepage
-			</a>
-
 			<div
 				className={`w-96 h-36 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-colors duration-150 cursor-pointer ${
 					dragOver ? "border-primary bg-base-200" : "border-base-300 bg-base-200/50"
@@ -109,8 +105,11 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 			/>
 
 			<button className="btn btn-primary w-96 mt-2 text-lg rounded-xl shadow" onClick={generateKeys}>
-				Generate New Wallet
+				Create New Wallet
 			</button>
+			<a href="https://broomledger.com" target="_blank" className="btn btn-small btn-accent btn-outline text-md">
+				Node Homepage
+			</a>
 		</div>
 	);
 };
