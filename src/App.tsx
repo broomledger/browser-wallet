@@ -14,6 +14,7 @@ export default function BroomWallet() {
 		setPrivateKey(priv ?? "");
 		setPublicKey(pub ?? "");
 	}, []);
+
 	return (
 		<>
 			{privateKey === "" ? (
@@ -25,6 +26,8 @@ export default function BroomWallet() {
 					clearKeys={() => {
 						setPrivateKey("");
 						setPublicKey("");
+						localStorage.setItem("publicKey", "");
+						localStorage.setItem("privateKey", "");
 					}}
 				></Wallet>
 			)}

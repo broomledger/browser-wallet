@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { StartProps } from "./types";
-import { exportPrivateKey, generateAddress } from "./utils";
+import { downloadFile, exportPrivateKey, generateAddress } from "./utils";
 
 export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 	const [dragOver, setDragOver] = useState(false);
@@ -24,6 +24,8 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 				console.log("invalid file");
 				throw new Error("invalid file");
 			}
+			localStorage.setItem("publicKey", data.public);
+			localStorage.setItem("privateKey", data.private);
 		} catch {
 			alert("invalid file");
 		}
@@ -54,19 +56,12 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 			public: await generateAddress(keyPair.publicKey),
 			private: await exportPrivateKey(keyPair.privateKey),
 		};
-		const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], {
-			type: "application/json",
-		});
-
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = "walletconfig.broom";
-		a.click();
-		URL.revokeObjectURL(url);
+		downloadFile("walletconfig.broom", jsonOutput);
 
 		setPublicKey(jsonOutput.public);
 		setPrivateKey(jsonOutput.private);
+		localStorage.setItem("publicKey", jsonOutput.public);
+		localStorage.setItem("privateKey", jsonOutput.private);
 	};
 
 	return (
@@ -108,7 +103,7 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 				Create New Wallet
 			</button>
 			<a href="https://broomledger.com" target="_blank" className="btn btn-small btn-accent btn-outline text-md">
-				Node Homepage
+				Host a node
 			</a>
 		</div>
 	);

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PendingTx, WalletProps } from "./types";
+import { downloadFile, getRandomNodeAddress, pollNode } from "./utils";
 
 export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 	const [balance, setBalance] = useState(0);
@@ -7,44 +8,88 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 	const [sendTo, setSendTo] = useState("");
 	const [sendAmount, setSendAmount] = useState("");
 
+	const formatted = (balance / 100000).toLocaleString("en-US", { minimumFractionDigits: 2 });
+
+	const [nonce, setNonce] = useState<number>(0);
+	const [syncing, setSyncing] = useState<boolean>(false);
+
+	const syncWallet = async () => {
+		setSyncing(true);
+		console.log("syncing wallet");
+		try {
+			const value = await pollNode(getRandomNodeAddress(), publicKey as string);
+			setNonce(value.nonce);
+			setBalance(value.balance);
+			console.log(value);
+		} catch (err) {
+			console.log(err);
+		}
+		setSyncing(false);
+	};
+
+	const downloadKeys = () => {
+		downloadFile("walletconfig.broom", { public: publicKey, private: privateKey });
+	};
+
+	useEffect(() => {
+		syncWallet();
+		const inter = setInterval(() => {
+			syncWallet();
+		}, 3000);
+
+		return () => {
+			clearInterval(inter);
+			console.log("clean up");
+		};
+	}, []);
+
 	return (
 		<div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl rounded-2xl">
-			<h2 className="text-3xl font-bold mb-6 text-center text-primary">My Wallet</h2>
-
+			<h2 className="text-3xl font-bold mb-6 text-center text-primary">Broom Wallet</h2>
+			<div className="flex justify-end mt-8 mb-4">
+				<button onClick={downloadKeys} className="btn btn-xs btn-outline">
+					Download Keys
+				</button>
+				<button
+					onClick={() => {
+						if (confirm("This will erase your keys locally")) clearKeys();
+					}}
+					className="btn btn-xs btn-outline"
+				>
+					Clear Keys
+				</button>
+			</div>
 			{/* Balance */}
-			<div className="mb-6 p-4 rounded-xl bg-base-200 text-center shadow-inner">
+			<div className="mb-6 p-4 rounded-xl bg-base-200 shadow-inner flex flex-col items-center relative">
 				<p className="text-base-content text-sm">Balance</p>
-				<p className="text-base-content text-2xl font-semibold">{balance} BROOM</p>
+				<div className="text-base-content text-2xl font-semibold flex">
+					<div className="font-bold">{formatted}</div>
+				</div>
+				<button
+					disabled={syncing}
+					onClick={syncWallet}
+					className="btn btn-xs btn-outline absolute bottom-2 right-2"
+				>
+					{syncing ? "Syncing" : "Sync"}
+				</button>
 			</div>
 
 			{/* Your Address */}
 			<div className="mb-6 relative">
-				<label className="block text-base-content text-sm font-medium mb-1">Your Wallet Address</label>
+				<label className="block text-sm font-medium mb-1">Your Wallet Address</label>
 				<input
 					type="text"
 					value={publicKey as string}
-					readOnly
-					className="input input-bordered w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+					disabled
+					className="input w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
 				/>
 				<button
 					onClick={() => navigator.clipboard.writeText(publicKey as string)}
-					className="btn btn-sm absolute right-2 top-7"
+					className="btn btn-sm border border-base-content absolute right-2 top-7"
 				>
 					Copy
 				</button>
 			</div>
-
-			{/* Clear Keys Button */}
-			<button
-				onClick={() => {
-					if (confirm("this will erase your keys locally")) {
-						clearKeys();
-					}
-				}}
-				className="btn btn-sm btn-outline mt-2 float-right mr-2"
-			>
-				Clear
-			</button>
 
 			{/* Send Section */}
 			<div className="mb-6 p-4 bg-base-200 rounded-xl shadow-inner space-y-3">
