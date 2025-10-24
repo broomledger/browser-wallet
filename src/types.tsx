@@ -16,6 +16,29 @@ export type PendingTx = {
 	amount: number;
 };
 
+export interface Keypair {
+	error?: string;
+	private: string;
+	public: string;
+}
+
+export interface Signature {
+	error?: string;
+	sig: string;
+}
+
+export interface Hash {
+	error?: string;
+	hash: string;
+}
+
+// wasm declarations
+export declare function wasmGenerateKeypair(): Keypair;
+
+export declare function wasmGetSignature(privateKey: string, data: Uint8Array): Signature;
+
+export declare function wasmHashArgon(data: Uint8Array): Hash;
+
 export class Transaction {
 	sig: string | undefined;
 	coinbase: boolean;

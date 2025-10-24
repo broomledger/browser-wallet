@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { StartProps } from "./types";
+import { wasmGenerateKeypair, type StartProps } from "./types";
 import { downloadFile, exportPrivateKey, generateAddress } from "./utils";
 
 export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
@@ -51,6 +51,8 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
 		);
 
 		console.log(keyPair.privateKey);
+
+		console.log(wasmGenerateKeypair());
 
 		const jsonOutput = {
 			public: await generateAddress(keyPair.publicKey),
