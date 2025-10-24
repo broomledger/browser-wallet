@@ -108,7 +108,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 					onChange={(e) => setSendAmount(e.target.value)}
 					className="input input-bordered w-full rounded-xl text-base-content"
 				/>
-				<button className="btn btn-info w-full mt-2">Send</button>
+				<button className="btn btn-info  w-full mt-2">Send</button>
 			</div>
 
 			{/* Pending Transactions */}
