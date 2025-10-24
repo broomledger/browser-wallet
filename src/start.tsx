@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { wasmGenerateKeypair, type StartProps } from "./types";
+import { type StartProps } from "./types";
 import { downloadFile, exportPrivateKey, generateAddress } from "./utils";
 
 export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
