@@ -1,5 +1,3 @@
-import { hash, ArgonType } from "argon2-browser";
-import * as secp from "@noble/secp256k1";
 import { importPrivateKey } from "./utils";
 
 export type WalletProps = {
@@ -70,30 +68,20 @@ export class Transaction {
 		const hash = await hashData(ser);
 
 		const privBytes = await cryptoKeyToBytes(priv);
-
-		const sig = secp.sign(hash.hash, privBytes);
-
-		const r = sig.slice(0, 32);
-		const s = sig.slice(32, 64);
-
-		const rHex = bytesToHex(sig.slice(0, 32));
-		const sHex = bytesToHex(sig.slice(32, 64));
-
-		console.log(rHex, sHex);
 	}
 }
 
 const hashData = async (data: number[]) => {
-	const res = await hash({
-		pass: new Uint8Array(data),
-		salt: new Uint8Array(0),
-		type: ArgonType.Argon2d,
-		time: 2,
-		mem: 512 * 1024,
-		parallelism: 2,
-		hashLen: 32,
-	});
-	return res;
+	// const res = await hash({
+	// 	pass: new Uint8Array(data),
+	// 	salt: new Uint8Array(0),
+	// 	type: ArgonType.Argon2d,
+	// 	time: 2,
+	// 	mem: 512 * 1024,
+	// 	parallelism: 2,
+	// 	hashLen: 32,
+	// });
+	return [];
 };
 
 async function cryptoKeyToBytes(privKey: CryptoKey): Promise<Uint8Array> {

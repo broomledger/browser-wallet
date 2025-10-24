@@ -1,5 +1,3 @@
-import * as secp from "@noble/secp256k1";
-
 export const validateKey = (key: string) => {
 	console.log(`validating key: ${key}`);
 	return true;
