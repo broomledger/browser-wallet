@@ -1,3 +1,3 @@
 # Broom Browser Wallet
 
-fully offline browser wallet
+local storage based browser wallet
