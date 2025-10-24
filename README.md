@@ -1,3 +1,6 @@
+![Pre-release](https://img.shields.io/badge/release-pre--release-red)
+
+
 # Broom Browser Wallet
 
-fully offline browser wallet
+local storage based browser wallet
