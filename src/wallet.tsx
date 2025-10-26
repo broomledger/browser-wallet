@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   type Transaction,
-  type PendingTx,
   type WalletProps,
   type ClientTransaction,
 } from "./types";
@@ -12,11 +11,11 @@ import {
   validatePublicKey,
 } from "./utils";
 
+const CONVERSION_RATE = 100000;
+
 export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
-  const CONVERSION_RATE = 100000;
   const [balance, setBalance] = useState(0);
   const [pending, setPending] = useState<Transaction[]>([]);
-  const [sendTo, setSendTo] = useState("");
   const [amountInput, setAmountInput] = useState<string>("");
 
   const [sendingMsg, setSendingMsg] = useState<string>("");
@@ -28,8 +27,6 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
   const [nonce, setNonce] = useState<number>(0);
   const [syncing, setSyncing] = useState<boolean>(false);
 
-  const [nextNonce, setNextNonce] = useState<number>(nonce + 1);
-
   const baseTxn: ClientTransaction = {
     coinbase: false,
     note: "",
@@ -40,10 +37,6 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
   };
 
   const [txn, setTxn] = useState<ClientTransaction>({ ...baseTxn });
-
-  useEffect(() => {
-    setTxn((prev) => ({ ...prev, nonce: nextNonce }));
-  }, [nextNonce]);
 
   const syncWallet = async () => {
     setSyncing(true);
@@ -103,6 +96,14 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     txn: ClientTransaction,
     privateKey: string,
   ): Transaction => {
+    const maxPendingNonce = pending.reduce((acc, value) => {
+      return acc > value.nonce ? acc : value.nonce;
+    }, nonce);
+
+    txn.nonce = maxPendingNonce + 1;
+
+    console.log("txn nonce: ", txn.nonce);
+
     txn.amount = txn.amount * CONVERSION_RATE;
     const sigOutput = wasmGetTransactionSig(privateKey, JSON.stringify(txn));
 
@@ -118,20 +119,43 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     };
   };
 
+  const broadcastTransaction = (txn: Transaction) => {
+    console.log("sending txn: ", txn);
+  };
+
   const sendTransaction = () => {
     console.log("sending txn");
+
+    if (!validatePublicKey(txn.to)) {
+      alert("invalid public key");
+      return;
+    }
+
+    if (txn.amount * CONVERSION_RATE > balance) {
+      alert("invalid amount");
+      return;
+    }
+
     setSendingMsg("hashing + signing transaction");
 
     // wasm hevy workload needs to push async
     setTimeout(() => {
       console.log("Starting signing...");
       const finalTxn = prepareTransaction(txn, privateKey);
+
+      setSendingMsg("broadcasting transaction to network");
+      broadcastTransaction(finalTxn);
       console.log("done ssigning");
       console.log(finalTxn);
 
+      setPending((prev) => [...prev, finalTxn]);
+
       // 3. Schedule the final state update
       setSendingMsg("");
-    }, 1000);
+
+      setAmountInput("");
+      setTxn(baseTxn);
+    }, 100);
   };
 
   useEffect(() => {
@@ -213,6 +237,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
             if (!isNaN(num)) mutateTransactionField("amount", num);
           }}
           className={`input ${!amountValid() && "input-error"} input-bordered w-full rounded-xl text-base-content`}
+          value={amountInput}
         />
         <button
           disabled={sendingMsg != ""}
@@ -230,6 +255,10 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 };
 
 const PendingTransactionTable = ({ pending }: { pending: Transaction[] }) => {
+  const formatCurrency = (value: number) =>
+    (value / CONVERSION_RATE).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+    });
   return (
     <div>
       <p className="text-base-content text-sm font-medium mb-3">
@@ -242,8 +271,8 @@ const PendingTransactionTable = ({ pending }: { pending: Transaction[] }) => {
             className="p-3 border rounded-xl flex justify-between items-center bg-base-100 shadow-sm"
           >
             <span className="truncate text-base-content">{tx.to}</span>
-            <span className="font-semibold text-warning">
-              {tx.amount} BROOM
+            <span className="font-semibold text-accent text-nowrap">
+              {formatCurrency(tx.amount)} BR
             </span>
           </li>
         ))}

@@ -8,12 +8,6 @@ export type StartProps = {
   setPublicKey: React.Dispatch<React.SetStateAction<string>>;
 };
 
-export type PendingTx = {
-  id: string;
-  to: string;
-  amount: number;
-};
-
 export type ClientTransaction = {
   coinbase: boolean;
   note: string;
