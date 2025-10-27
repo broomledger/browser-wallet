@@ -15,10 +15,25 @@ const CONVERSION_RATE = 100000;
 
 export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
   const [balance, setBalance] = useState(0);
-  const [pending, setPending] = useState<Transaction[]>([]);
+
+  const getPending = (): Transaction[] => {
+    const storedPending = localStorage.getItem("pending");
+    if (!storedPending) {
+      return [];
+    }
+
+    const parsedPending = JSON.parse(storedPending);
+
+    return parsedPending as Transaction[];
+  };
+  const [pending, setPending] = useState<Transaction[]>(getPending());
   const [amountInput, setAmountInput] = useState<string>("");
 
   const [sendingMsg, setSendingMsg] = useState<string>("");
+
+  const backupPending = (txns: Transaction[]) => {
+    localStorage.setItem("pending", JSON.stringify(txns));
+  };
 
   const formattedBalance = (balance / CONVERSION_RATE).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -104,7 +119,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 
     console.log("txn nonce: ", txn.nonce);
 
-    txn.amount = txn.amount * CONVERSION_RATE;
+    txn.amount = Math.floor(txn.amount * CONVERSION_RATE);
     const sigOutput = wasmGetTransactionSig(privateKey, JSON.stringify(txn));
 
     if (sigOutput.error) {
@@ -119,11 +134,25 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     };
   };
 
-  const broadcastTransaction = (txn: Transaction) => {
+  const broadcastTransaction = async (txn: Transaction): Promise<void> => {
     console.log("sending txn: ", txn);
+
+    const options = {
+      method: "POST",
+      body: JSON.stringify(txn),
+    };
+    const res = await fetch(
+      "https://node.broomledger.com/transaction",
+      options,
+    );
+
+    if (!res.ok) {
+      alert("bad request");
+    }
+    return;
   };
 
-  const sendTransaction = () => {
+  const sendTransaction = async () => {
     console.log("sending txn");
 
     if (!validatePublicKey(txn.to)) {
@@ -136,31 +165,45 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
       return;
     }
 
+    if (!confirm("Are you sure?")) {
+      return;
+    }
+
     setSendingMsg("hashing + signing transaction");
 
     // wasm hevy workload needs to push async
-    setTimeout(() => {
+    setTimeout(async () => {
       console.log("Starting signing...");
       const finalTxn = prepareTransaction(txn, privateKey);
 
       setSendingMsg("broadcasting transaction to network");
-      broadcastTransaction(finalTxn);
-      console.log("done ssigning");
-      console.log(finalTxn);
+      await broadcastTransaction(finalTxn);
 
-      setPending((prev) => [...prev, finalTxn]);
+      setPending((prev) => {
+        const newPending = [...prev, finalTxn];
+        backupPending(newPending);
+        return newPending;
+      });
 
-      // 3. Schedule the final state update
       setSendingMsg("");
-
+      console.log("setting input amount back");
       setAmountInput("");
       setTxn(baseTxn);
     }, 100);
   };
 
   useEffect(() => {
-    console.log(sendingMsg);
-  }, [sendingMsg]);
+    console.log(nonce);
+  }, [nonce]);
+
+  const clearPending = () => {
+    if (!confirm("Are you sure?")) {
+      return;
+    }
+
+    setPending([]);
+    backupPending([]);
+  };
 
   return (
     <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl rounded-2xl">
@@ -249,21 +292,61 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
       </div>
 
       {/* Pending Transactions */}
-      <PendingTransactionTable pending={pending} />
+      <PendingTransactionTable
+        pending={pending}
+        setPending={setPending}
+        nonce={nonce}
+        backupPending={backupPending}
+        clearPending={clearPending}
+      />
     </div>
   );
 };
 
-const PendingTransactionTable = ({ pending }: { pending: Transaction[] }) => {
+const PendingTransactionTable = ({
+  pending,
+  setPending,
+  nonce,
+  backupPending,
+  clearPending,
+}: {
+  pending: Transaction[];
+  setPending: React.Dispatch<React.SetStateAction<Transaction[]>>;
+  nonce: number;
+  backupPending: (txns: Transaction[]) => void;
+  clearPending: () => void;
+}) => {
   const formatCurrency = (value: number) =>
     (value / CONVERSION_RATE).toLocaleString("en-US", {
       minimumFractionDigits: 2,
     });
+
+  useEffect(() => {
+    setPending((prev) => {
+      const fileredPending = prev.filter((value) => value.nonce >= nonce + 1);
+
+      if (fileredPending.length < prev.length) {
+        backupPending(fileredPending);
+      }
+      return fileredPending;
+    });
+    console.log("hello");
+  }, [nonce]);
+
   return (
     <div>
       <p className="text-base-content text-sm font-medium mb-3">
         Pending Transactions
+        {pending.length != 0 && (
+          <button
+            onClick={clearPending}
+            className="btn btn-xs btn-outline top-0  float-right"
+          >
+            clear
+          </button>
+        )}
       </p>
+
       <ul className="space-y-2 max-h-48 overflow-y-auto">
         {pending.map((tx) => (
           <li
