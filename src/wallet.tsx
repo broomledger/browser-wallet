@@ -207,7 +207,11 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl ">
-      <img src={"/broom.svg"} alt="Broom" className="w-20 h-20 mx-auto" />
+      <img
+        src={"/broom-transparent.svg"}
+        alt="Broom"
+        className="w-20 h-20 mx-auto"
+      />
 
       <div className="flex justify-start ">
         <button

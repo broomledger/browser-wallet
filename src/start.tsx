@@ -61,9 +61,13 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 space-y-10 bg-base-100">
+    <div className="min-h-screen flex flex-col p-6 items-center justify-center text-center p-8 space-y-10 bg-base-100">
       <div className="space-y-2">
-        <img src={"/broom.svg"} alt="Broom" className="w-20 h-20 mx-auto" />
+        <img
+          src={"/broom-transparent.svg"}
+          alt="Broom"
+          className="w-20 h-20 mx-auto"
+        />
         <h1 className="text-5xl font-bold text-primary">Broom Wallet</h1>
 
         <p className="text-base text-base-content/70 max-w-md">
