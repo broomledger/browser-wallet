@@ -63,7 +63,9 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center text-center p-8 space-y-10 bg-base-100">
       <div className="space-y-2">
+        <img src={"/broom.svg"} alt="Broom" className="w-20 h-20 mx-auto" />
         <h1 className="text-5xl font-bold text-primary">Broom Wallet</h1>
+
         <p className="text-base text-base-content/70 max-w-md">
           Manage your wallet securely. All data is stored in local storage, we
           keep none of your data.
@@ -103,7 +105,7 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
       />
 
       <button
-        className="btn btn-primary w-96 mt-2 text-lg rounded-xl shadow"
+        className="btn btn-primary w-96 mt-2 text-lg  shadow"
         onClick={generateKeys}
       >
         Create New Wallet

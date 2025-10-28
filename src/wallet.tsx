@@ -206,25 +206,26 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl rounded-2xl">
-      <h2 className="text-3xl font-bold mb-6 text-center text-primary">
-        Broom Wallet
-      </h2>
-      <div className="flex justify-end mt-8 mb-4">
-        <button onClick={downloadKeys} className="btn btn-xs btn-outline">
-          Download Keys
-        </button>
+    <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl ">
+      <img src={"/broom.svg"} alt="Broom" className="w-20 h-20 mx-auto" />
+
+      <div className="flex justify-start ">
         <button
           onClick={() => {
             if (confirm("This will erase your keys locally")) clearKeys();
           }}
-          className="btn btn-xs btn-outline"
+          className="btn btn-xs btn-ghost"
         >
           Clear Keys
         </button>
+
+        <div className="grow"></div>
+        <button onClick={downloadKeys} className="btn btn-xs btn-ghost">
+          Download Keys
+        </button>
       </div>
       {/* Balance */}
-      <div className="mb-6 p-4 rounded-xl bg-base-200 shadow-inner flex flex-col items-center relative">
+      <div className="mb-6 p-4  bg-base-200 shadow-inner flex flex-col items-center relative">
         <p className="text-base-content text-sm">Balance</p>
         <div className="text-base-content text-2xl font-semibold flex">
           <div className="font-bold">{formattedBalance}</div>
@@ -247,7 +248,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
           type="text"
           value={publicKey as string}
           disabled
-          className="input w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+          className="input w-full  focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <button
           onClick={() => navigator.clipboard.writeText(publicKey as string)}
@@ -258,14 +259,14 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
       </div>
 
       {/* Send Section */}
-      <div className="mb-6 p-4 bg-base-200 rounded-xl shadow-inner space-y-3">
+      <div className="mb-6 p-4 bg-base-200  shadow-inner space-y-3">
         <p className="text-base-content text-sm font-medium">Send BROOM</p>
         <input
           type="text"
           placeholder="Recipient Address"
           value={txn.to}
           onChange={(e) => mutateTransactionField("to", e.target.value)}
-          className={`input ${!validatePublicKey(txn.to) && txn.to.length != 0 && "input-error"} input-bordered w-full rounded-xl text-base-content`}
+          className={`input ${!validatePublicKey(txn.to) && txn.to.length != 0 && "input-error"} input-bordered w-full  text-base-content`}
         />
         <input
           type="string"
@@ -279,7 +280,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
             const num = parseFloat(val);
             if (!isNaN(num)) mutateTransactionField("amount", num);
           }}
-          className={`input ${!amountValid() && "input-error"} input-bordered w-full rounded-xl text-base-content`}
+          className={`input ${!amountValid() && "input-error"} input-bordered w-full  text-base-content`}
           value={amountInput}
         />
         <button
@@ -351,7 +352,7 @@ const PendingTransactionTable = ({
         {pending.map((tx) => (
           <li
             key={tx.sig}
-            className="p-3 border rounded-xl flex justify-between items-center bg-base-100 shadow-sm"
+            className="p-3 border  flex justify-between items-center bg-base-100 shadow-sm"
           >
             <span className="truncate text-base-content">{tx.to}</span>
             <span className="font-semibold text-accent text-nowrap">

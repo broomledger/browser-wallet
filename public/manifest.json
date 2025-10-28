@@ -1,0 +1,15 @@
+{
+  "name": "Broom Wallet",
+  "short_name": "Wallet",
+  "icons": [
+    {
+      "src": "icons/broom.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000"
+}
