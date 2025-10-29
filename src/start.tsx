@@ -59,9 +59,9 @@ export const Start = ({ setPrivateKey, setPublicKey }: StartProps) => {
     localStorage.setItem("publicKey", jsonOutput.public);
     localStorage.setItem("privateKey", jsonOutput.private);
   };
-
+  // p-6 max-w-md mx-auto bg-base-100 shadow-xl
   return (
-    <div className="min-h-screen flex flex-col p-6 items-center justify-center text-center p-8 space-y-10 bg-base-100">
+    <div className="min-h-screen max-w-md mx-auto flex flex-col p-6 items-center justify-center text-center space-y-10 bg-base-100">
       <div className="space-y-2">
         <img
           src={"/broom-transparent.svg"}
