@@ -52,7 +52,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     coinbase: false,
     note: "",
     nonce: nonce + 1,
-    to: toAddress ?? "",
+    to: toAddress ? decodeURIComponent(toAddress) : "",
     from: publicKey,
     amount: 0,
   };
@@ -264,7 +264,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
           <button
             onClick={() =>
               navigator.clipboard.writeText(
-                `https://wallet.broomledger.com?to=${publicKey as string}`,
+                `https://wallet.broomledger.com?to=${encodeURIComponent(publicKey as string)}`,
               )
             }
             className="btn btn-sm border border-base-content"
