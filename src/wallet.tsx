@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+
 import {
   type Transaction,
   type WalletProps,
@@ -15,6 +17,10 @@ const CONVERSION_RATE = 100000;
 
 export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
   const [balance, setBalance] = useState(0);
+
+  const [searchParams] = useSearchParams();
+
+  const toAddress = searchParams.get("to");
 
   const getPending = (): Transaction[] => {
     const storedPending = localStorage.getItem("pending");
@@ -46,7 +52,7 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     coinbase: false,
     note: "",
     nonce: nonce + 1,
-    to: "",
+    to: toAddress ?? "",
     from: publicKey,
     amount: 0,
   };
@@ -254,12 +260,25 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
           disabled
           className="input w-full  focus:outline-none focus:ring-2 focus:ring-primary"
         />
-        <button
-          onClick={() => navigator.clipboard.writeText(publicKey as string)}
-          className="btn btn-sm border border-base-content absolute right-2 top-7"
-        >
-          Copy
-        </button>
+        <div className="flex absolute top-7 right-2 ">
+          <button
+            onClick={() =>
+              navigator.clipboard.writeText(
+                `https://wallet.broomledger.com?to=${publicKey as string}`,
+              )
+            }
+            className="btn btn-sm border border-base-content"
+          >
+            Copy URL
+          </button>
+
+          <button
+            onClick={() => navigator.clipboard.writeText(publicKey as string)}
+            className="btn btn-sm border border-base-content "
+          >
+            Copy Raw
+          </button>
+        </div>
       </div>
 
       {/* Send Section */}
