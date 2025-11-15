@@ -211,119 +211,156 @@ export const Wallet = ({ privateKey, publicKey, clearKeys }: WalletProps) => {
     backupPending([]);
   };
 
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
   return (
-    <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl ">
-      <img
-        src={"/broom-transparent.svg"}
-        alt="Broom"
-        className="w-20 h-20 mx-auto"
-      />
+    <>
+      {menuOpen ? (
+        <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl ">
+          <div className="flex justify-start ">
+            <div className="grow"></div>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+              }}
+              className="btn btn-xs btn-ghost"
+            >
+              Exit
+            </button>
+          </div>
 
-      <div className="flex justify-start ">
-        <button
-          onClick={() => {
-            if (confirm("This will erase your keys locally")) clearKeys();
-          }}
-          className="btn btn-xs btn-ghost"
-        >
-          Clear Keys
-        </button>
+          <div className="h-10"></div>
 
-        <div className="grow"></div>
-        <button onClick={downloadKeys} className="btn btn-xs btn-ghost">
-          Download Keys
-        </button>
-      </div>
-      {/* Balance */}
-      <div className="mb-6 p-4  bg-base-200 shadow-inner flex flex-col items-center relative">
-        <p className="text-base-content text-sm">Balance</p>
-        <div className="text-base-content text-2xl font-semibold flex">
-          <div className="font-bold">{formattedBalance}</div>
+          <div className="flex-col">
+            <button
+              onClick={downloadKeys}
+              className="btn btn-md btn-primary w-full"
+            >
+              Download Keys
+            </button>
+            <button
+              onClick={() => {
+                if (confirm("This will erase your keys locally")) clearKeys();
+              }}
+              className="btn btn-md btn-primary w-full mt-4"
+            >
+              Clear Keys
+            </button>
+          </div>
         </div>
-        <button
-          disabled={syncing}
-          onClick={syncWallet}
-          className="btn btn-xs btn-outline absolute bottom-2 right-2"
-        >
-          {syncing ? "Syncing" : "Sync"}
-        </button>
-      </div>
+      ) : (
+        <div className="p-6 max-w-md mx-auto bg-base-100 shadow-xl ">
+          <img
+            src={"/broom-transparent.svg"}
+            alt="Broom"
+            className="w-20 h-20 mx-auto"
+          />
 
-      {/* Your Address */}
-      <div className="mb-6 relative">
-        <label className="block text-sm font-medium mb-1">
-          Your Wallet Address
-        </label>
-        <input
-          type="text"
-          value={publicKey as string}
-          disabled
-          className="input w-full  focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-        <div className="flex absolute top-7 right-2 ">
-          <button
-            onClick={() =>
-              navigator.clipboard.writeText(
-                `https://wallet.broomledger.com?to=${encodeURIComponent(publicKey as string)}`,
-              )
-            }
-            className="btn btn-sm border border-base-content"
-          >
-            Copy URL
-          </button>
+          <div className="flex justify-start ">
+            <div className="grow"></div>
+            <button
+              onClick={() => {
+                setMenuOpen(true);
+              }}
+              className="btn btn-xs btn-ghost"
+            >
+              Menu
+            </button>
+          </div>
+          {/* Balance */}
+          <div className="mb-6 p-4  bg-base-200 shadow-inner flex flex-col items-center relative">
+            <p className="text-base-content text-sm">Balance</p>
+            <div className="text-base-content text-2xl font-semibold flex">
+              <div className="font-bold">{formattedBalance}</div>
+            </div>
+            <button
+              disabled={syncing}
+              onClick={syncWallet}
+              className="btn btn-xs btn-outline absolute bottom-2 right-2"
+            >
+              {syncing ? "Syncing" : "Sync"}
+            </button>
+          </div>
 
-          <button
-            onClick={() => navigator.clipboard.writeText(publicKey as string)}
-            className="btn btn-sm border border-base-content "
-          >
-            Copy Raw
-          </button>
+          {/* Your Address */}
+          <div className="mb-6 relative">
+            <label className="block text-sm font-medium mb-1">
+              Your Wallet Address
+            </label>
+            <input
+              type="text"
+              value={publicKey as string}
+              disabled
+              className="input w-full  focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+            <div className="flex absolute top-7 right-2 ">
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    `https://wallet.broomledger.com?to=${encodeURIComponent(publicKey as string)}`,
+                  )
+                }
+                className="btn btn-sm border border-base-content"
+              >
+                Copy URL
+              </button>
+
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(publicKey as string)
+                }
+                className="btn btn-sm border border-base-content "
+              >
+                Copy Raw
+              </button>
+            </div>
+          </div>
+
+          {/* Send Section */}
+          <div className="mb-6 p-4 bg-base-200  shadow-inner space-y-3">
+            <p className="text-base-content text-sm font-medium">Send BROOM</p>
+            <input
+              type="text"
+              placeholder="Recipient Address"
+              value={txn.to}
+              onChange={(e) => mutateTransactionField("to", e.target.value)}
+              className={`input ${!validatePublicKey(txn.to) && txn.to.length != 0 && "input-error"} input-bordered w-full  text-base-content`}
+            />
+            <input
+              type="string"
+              placeholder="Amount"
+              onChange={(e) => {
+                const val = e.target.value
+                  .replace(/[^0-9.]/g, "")
+                  .replace(/(\..*?)\..*/g, "$1");
+
+                setAmountInput(val);
+                const num = parseFloat(val);
+                if (!isNaN(num)) mutateTransactionField("amount", num);
+              }}
+              className={`input ${!amountValid() && "input-error"} input-bordered w-full  text-base-content`}
+              value={amountInput}
+            />
+            <button
+              disabled={sendingMsg != ""}
+              onClick={sendTransaction}
+              className="btn btn-info  w-full mt-2"
+            >
+              {sendingMsg === "" ? "Send" : sendingMsg}
+            </button>
+          </div>
+
+          {/* Pending Transactions */}
+          <PendingTransactionTable
+            pending={pending}
+            setPending={setPending}
+            nonce={nonce}
+            backupPending={backupPending}
+            clearPending={clearPending}
+          />
         </div>
-      </div>
-
-      {/* Send Section */}
-      <div className="mb-6 p-4 bg-base-200  shadow-inner space-y-3">
-        <p className="text-base-content text-sm font-medium">Send BROOM</p>
-        <input
-          type="text"
-          placeholder="Recipient Address"
-          value={txn.to}
-          onChange={(e) => mutateTransactionField("to", e.target.value)}
-          className={`input ${!validatePublicKey(txn.to) && txn.to.length != 0 && "input-error"} input-bordered w-full  text-base-content`}
-        />
-        <input
-          type="string"
-          placeholder="Amount"
-          onChange={(e) => {
-            const val = e.target.value
-              .replace(/[^0-9.]/g, "")
-              .replace(/(\..*?)\..*/g, "$1");
-
-            setAmountInput(val);
-            const num = parseFloat(val);
-            if (!isNaN(num)) mutateTransactionField("amount", num);
-          }}
-          className={`input ${!amountValid() && "input-error"} input-bordered w-full  text-base-content`}
-          value={amountInput}
-        />
-        <button
-          disabled={sendingMsg != ""}
-          onClick={sendTransaction}
-          className="btn btn-info  w-full mt-2"
-        >
-          {sendingMsg === "" ? "Send" : sendingMsg}
-        </button>
-      </div>
-
-      {/* Pending Transactions */}
-      <PendingTransactionTable
-        pending={pending}
-        setPending={setPending}
-        nonce={nonce}
-        backupPending={backupPending}
-        clearPending={clearPending}
-      />
-    </div>
+      )}
+    </>
   );
 };
 
